@@ -1,0 +1,120 @@
+---
+title: "Data Wrangling"
+author: "Stephanie Cheng"
+date: "4/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(janitor)
+```
+
+```{r cleaning and loading data, echo=FALSE}
+
+# To clean and load the data, I used read.csv to read the csv files. I then used
+# clean_names() from the janitor package to make the column names easier to work
+# with. Then I went through and renamed all the column names with appropriate
+# variable names since the original names were in the form of questions that the
+# questionnaire initially used (which are long and tedious to work with). I did
+# this for both the 2017 and 2019 data, trying my best to be consistent across
+# the data since the questionnaires for both years were slightly different.
+
+census_2019 <- read.csv("./raw-data/design_census_2019.csv") %>%
+  clean_names() %>%
+  rename(career_duration = i_ve_worked_in_design_for,
+         job_type = i_work_in,
+         industry_type = industries_i_work_with,
+         skills = my_skills_include,
+         currently_learning = i_am_currently_learning,
+         employment_status = i_am_currently_a_an,
+         job_level = i_m_a_an,
+         job_challenges = my_job_is_challenging_because,
+         job_pros = my_job_is_great_because,
+         org_size = my_organization_has,
+         department_size = my_department_has,
+         job_duration = i_ve_worked_here_for,
+         role_duration = i_ve_had_my_role_for,
+         work_hours = i_typically_work,
+         salary = i_make,
+         benefits = my_benefits_include,
+         advancement_opportunities = i_have,
+         learning_status = i_am,
+         design_satisfaction_level = i_am_1,
+         job_stability = i_feel,
+         side_gigs = on_the_side_i,
+         learned_design_from = i_learned_design_from,
+         degree_subject = i_got_my_degree_in,
+         number_of_jobs = i_ve_had,
+         up_to_date_method = i_stay_current_with_design_by,
+         job_satisfaction_level = i_m_currently,
+         zip_code = my_zip_code_is,
+         age = my_age_is,
+         gender = i_identify_as,
+         ethnicity = i_am_2,
+         issues_in_design = i_feel_the_most_critical_issues_challenges_currently_facing_design_are,
+         biggest_future_impact = i_think_the_emerging_future_technologies_that_will_have_the_biggest_impact_on_design_are,
+         most_critical_skills = i_think_the_most_critical_design_skills_for_the_future_will_be,
+         priorities = my_main_priorities_are) %>%
+  select(-i_work_in_1, -i_work_in_2, -i_work_in_3, -i_m_not_currently_working_because, -i_feel_the_most_critical_issues_challenges_currently_facing_design_are_1) %>%
+  mutate(census_year = 2019)
+
+census_2017 <- read.csv("./raw-data/design_census_2017.csv") %>%
+  clean_names() %>%
+  rename(career_duration = starts_with("x1_"),
+         job_type = starts_with("x2_"),
+         skills = starts_with("x3_"),
+         employment_status = starts_with("x4_"),
+         company_type = starts_with("x5_"),
+         org_size = starts_with("x9_"),
+         department_size = starts_with("x10_"),
+         industry_type = starts_with("x11_"),
+         job_duration = starts_with("x12_"),
+         job_level = starts_with("x13_"),
+         role_duration = starts_with("x16_"),
+         work_hours = starts_with("x17_"),
+         salary = starts_with("x18_"),
+         benefits = starts_with("x19_"),
+         advancement_opportunities = starts_with("x20_"),
+         learning_status = starts_with("x21_"),
+         job_satisfaction_level = starts_with("x22_"),
+         job_stability = starts_with("x23_"),
+         side_gigs = starts_with("x24"),
+         cups_of_coffee = starts_with("x25"),
+         highest_education = starts_with("x26_"),
+         learned_design_from = starts_with("x27_"),
+         degree_subject = starts_with("x28_"),
+         number_of_jobs = starts_with("x29_"),
+         number_of_job_shifts = starts_with("x30_"),
+         up_to_date_method = starts_with("x31_"),
+         areas_of_improvement = starts_with("x33_"),
+         job_status = starts_with("x34_"),
+         zip_code = starts_with("x36_"),
+         age = starts_with("x37_"),
+         gender = starts_with("x38_"),
+         lgbtqia_status = starts_with("x39_"),
+         ethnicity = starts_with("x40_"),
+         issues_in_design = starts_with("x41_"),
+         biggest_future_impact = starts_with("x42_"),
+         most_critical_skills = starts_with("x43_")) %>%
+  select(-starts_with("x6_"),
+         -starts_with("x7_"),
+         -starts_with("x8_"),
+         -starts_with("x14_"),
+         -starts_with("x32_"),
+         -starts_with("x35_"))
+
+us_zips <- read.csv("./raw-data/uszips.csv") %>%
+  select(zip, state_name, state_id, lat, lng, city)
+
+# Cleaning us company data by collapsing repetitive factors
+
+us_companies <- read.csv("./raw-data/us_companies.csv")
+
+fct_collapse(us_companies$company_category, `Data/Technology` = c("Data/Technology", "Data/Technology,"))
+fct_collapse(us_companies$company_category, `Housing/Real Estate` = c("Housing/Real Estate", "Housing/Real Estate,"))
+```
