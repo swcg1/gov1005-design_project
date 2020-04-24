@@ -26,7 +26,7 @@ library(broom)
 # this for both the 2017 and 2019 data, trying my best to be consistent across
 # the data since the questionnaires for both years were slightly different.
 
-census_2019 <- read.csv("./raw-data/design_census_2019.csv") %>%
+census_2019_raw <- read.csv("./raw-data/design_census_2019.csv") %>%
   clean_names() %>%
   rename(career_duration = i_ve_worked_in_design_for,
          job_type = i_work_in,
@@ -62,10 +62,10 @@ census_2019 <- read.csv("./raw-data/design_census_2019.csv") %>%
          biggest_future_impact = i_think_the_emerging_future_technologies_that_will_have_the_biggest_impact_on_design_are,
          most_critical_skills = i_think_the_most_critical_design_skills_for_the_future_will_be,
          priorities = my_main_priorities_are) %>%
-  select(-i_work_in_1, -i_work_in_2, -i_work_in_3, -i_m_not_currently_working_because, -i_feel_the_most_critical_issues_challenges_currently_facing_design_are_1) %>%
+  select(age, gender, ethnicity, work_hours, salary, industry_type, design_satisfaction_level, job_type, skills, employment_status, org_size, department_size, job_stability, learned_design_from, career_duration) %>%
   mutate(census_year = 2019)
 
-census_2017 <- read.csv("./raw-data/design_census_2017.csv") %>%
+census_2017_raw <- read.csv("./raw-data/design_census_2017.csv") %>%
   clean_names() %>%
   rename(career_duration = starts_with("x1_"),
          job_type = starts_with("x2_"),
@@ -103,12 +103,7 @@ census_2017 <- read.csv("./raw-data/design_census_2017.csv") %>%
          issues_in_design = starts_with("x41_"),
          biggest_future_impact = starts_with("x42_"),
          most_critical_skills = starts_with("x43_")) %>%
-  select(-starts_with("x6_"),
-         -starts_with("x7_"),
-         -starts_with("x8_"),
-         -starts_with("x14_"),
-         -starts_with("x32_"),
-         -starts_with("x35_"))
+  select(age, gender, ethnicity, work_hours, salary, industry_type, job_satisfaction_level, job_type, skills, employment_status, org_size, department_size, job_stability, learned_design_from, career_duration)
 
 us_zips <- read.csv("./raw-data/uszips.csv") %>%
   select(zip, state_name, state_id, lat, lng, city)
@@ -120,6 +115,69 @@ us_companies <- read.csv("./raw-data/us_companies.csv")
 fct_collapse(us_companies$company_category, `Data/Technology` = c("Data/Technology", "Data/Technology,"))
 fct_collapse(us_companies$company_category, `Housing/Real Estate` = c("Housing/Real Estate", "Housing/Real Estate,"))
 ```
+
+```{r cleaning, echo=FALSE}
+
+# got rid of outlier salary data
+
+census_2017_model <- census_2017_raw %>%
+  filter(!salary > 1000000) %>%
+  select(age, gender, career_duration, org_size, department_size, job_satisfaction_level, salary)
+
+# figuring out the mean salary in each bracket based on 2017 data
+
+avg_salary_8<- census_2017_model %>%
+  filter(salary >= 200000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_7 <- census_2017_model %>%
+  filter(salary >= 150000 & salary < 200000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_6 <- census_2017_model %>%
+  filter(salary >= 100000 & salary < 150000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_5 <- census_2017_model %>%
+  filter(salary >= 75000 & salary < 100000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_4 <- census_2017_model %>%
+  filter(salary >= 50000 & salary < 75000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_3 <- census_2017_model %>%
+  filter(salary >= 35000 & salary < 50000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_2 <- census_2017_model %>%
+  filter(salary >= 25000 & salary < 35000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+avg_salary_1 <- census_2017_model %>%
+  filter(salary < 25000) %>%
+  summarize(avg_salary = mean(salary)) %>%
+  round(digits = 0)
+
+# assign actual salary values to 2019 data using a join
+
+salary_join <- tibble(
+  salary = c("$200,000+", "$150,000 to $199,999", "$100,000 to $149,999", "$75,000 to $99,999", "$50,000 to $74,999", "$35,000 to $49,999", "$25,000 to $34,999", "Less than $25,000"),
+  salary_exact = c(avg_salary_8, avg_salary_7, avg_salary_6, avg_salary_5, avg_salary_4, avg_salary_3, avg_salary_2, avg_salary_1)
+)
+
+census_2019_model <- left_join(census_2019_raw, salary_join, by = "salary") %>%
+  select(age, gender, career_duration, org_size, department_size, design_satisfaction_level, salary)
+
+```
+
 
 ```{r tab 1, echo=FALSE}
 
@@ -177,6 +235,8 @@ census_2017 %>%
 
 # Salary predictor
 
+
+
 model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size + highest_education + job_satisfaction_level, data = census_2017)
 
 model_salary %>%
@@ -194,12 +254,20 @@ predict(model_salary, tibble(age = 22,
 
 # Job Satisfaction predictor
 
-satisfaction_levels <- tibble(
+satisfaction_levels_2017 <- tibble(
   job_satisfaction_level = c("Not great", "Pretty good", "The best", "The worst", "Not sure"),
   level_num = c(2, 3, 4, 1, NA)
 )
 
-model_satisfaction_data_2017 <- left_join(census_2017, satisfaction_levels, by = "job_satisfaction_level") %>%
+model_satisfaction_data_2017 <- left_join(census_2017, satisfaction_levels_2017, by = "job_satisfaction_level") %>%
+  filter(job_satisfaction_level != "Not sure")
+
+satisfaction_levels_2019 <- tibble(
+  design_satisfaction_level = c("Not really satisfied, but I deal" , "Happy, but there's room for improvement", "Extremely satisfied with my work situation", "Ready to call it quits", "Not sure"),
+  level_num = c(2, 3, 4, 1, NA)
+)
+
+model_satisfaction_data_2019 <- left_join(census_2019, satisfaction_levels_2019, by = "design_satisfaction_level") %>%
   filter(job_satisfaction_level != "Not sure")
 
 model_satisfaction <- lm(level_num ~ age + gender + career_duration + org_size + department_size + highest_education + salary, data = model_satisfaction_data_2017)
