@@ -8,7 +8,12 @@
 #
 
 library(shiny)
+library(tidyverse)
+library(dplyr)
+library(readr)
 library(ggplot2)
+
+read_rds("census_model_joined.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -17,7 +22,7 @@ ui <- fluidPage(
     titlePanel("Deep Dive into Design in America"),
     
     # Adding tabs
-    navbarPage(":)",
+    navbarPage("",
                
     # Sidebar with a slider input for number of bins 
     tabPanel("Who Are Our Designers?", 
@@ -32,7 +37,7 @@ ui <- fluidPage(
                  
                  # Show a plot of the generated distribution
                  mainPanel(
-                     textOutput("selected")
+                     plotOutput("tab1")
                  )
              )),
     tabPanel("By Location"
@@ -47,10 +52,14 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-    output$selected <- renderText({
+    output$tab1 <- renderPlot(
         
-        paste("You have selected")
-    })
+        census_model_joined %>%
+            group_by(age) %>%
+            count() %>%
+            ggplot(aes(age, n)) +
+            geom_bar(stat = "identity")
+    )
 }
 
 # Run the application 

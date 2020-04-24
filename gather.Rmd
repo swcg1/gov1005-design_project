@@ -129,42 +129,50 @@ census_2017_model <- census_2017_raw %>%
 avg_salary_8<- census_2017_model %>%
   filter(salary >= 200000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_7 <- census_2017_model %>%
   filter(salary >= 150000 & salary < 200000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_6 <- census_2017_model %>%
   filter(salary >= 100000 & salary < 150000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_5 <- census_2017_model %>%
   filter(salary >= 75000 & salary < 100000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_4 <- census_2017_model %>%
   filter(salary >= 50000 & salary < 75000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_3 <- census_2017_model %>%
   filter(salary >= 35000 & salary < 50000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_2 <- census_2017_model %>%
   filter(salary >= 25000 & salary < 35000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 avg_salary_1 <- census_2017_model %>%
   filter(salary < 25000) %>%
   summarize(avg_salary = mean(salary)) %>%
-  round(digits = 0)
+  round(digits = 0) %>%
+  pull(avg_salary)
 
 # assign actual salary values to 2019 data using a join
 
@@ -203,7 +211,17 @@ census_2017_model <- left_join(census_2017_model, satisfaction_levels_2017, by =
 
 # joining both 2017 and 2019 cleaned data
 
-census_model_joined <- rbind(census_2019_model, census_2017_model)
+census_model_joined <- rbind(census_2019_model, census_2017_model) %>%
+  mutate(gender = map_chr(gender, ~ifelse(. == "Female", "Female", 
+                                      ifelse(. == "Male", "Male", "Other"))),
+         career_duration = str_replace_all(career_duration, " ", ""),
+         org_size = str_replace_all(org_size, " ", ""),
+         org_size = map_chr(org_size, ~ifelse(. == "501-1,000employees", "501-1000employees", .)),
+         org_size = map_chr(org_size, ~ifelse(. == "1,000+employees", "1000+employees", .)),
+         org_size = map_chr(org_size, ~ifelse(. == "Notsure", "Unsure", .)),
+         department_size = str_replace_all(department_size, " ", ""),
+         department_size = map_chr(department_size, ~ifelse(. == "21+people", "20+people", .))) %>%
+  filter(age < 150)
 
 ```
 
@@ -264,38 +282,33 @@ census_2017 %>%
 
 # Salary predictor
 
-
-
-model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size + highest_education + job_satisfaction_level, data = census_2017)
+model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size + satisfaction_level, data = census_model_joined)
 
 model_salary %>%
   tidy()
 
 predict(model_salary, tibble(age = 22, 
                              gender = "Female", 
-                             career_duration = "1-4 years", 
-                             org_size = "11-50 employees", 
-                             department_size = "Just me", 
-                             highest_education = "Bachelor's degree",
-                             job_satisfaction_level = "Pretty good"),
+                             career_duration = "1-4years", 
+                             org_size = "11-50employees", 
+                             department_size = "Justme",
+                             satisfaction_level = 2),
         interval = "confidence")
 
 
 # Job Satisfaction predictor
 
 
-
-model_satisfaction <- lm(level_num ~ age + gender + career_duration + org_size + department_size + highest_education + salary, data = model_satisfaction_data_2017)
+model_satisfaction <- lm(satisfaction_level ~ age + gender + career_duration + org_size + department_size + salary, data = census_model_joined)
 
 model_satisfaction%>%
   tidy()
 
 predict(model_satisfaction, tibble(age = 22, 
                              gender = "Female", 
-                             career_duration = "1-4 years", 
-                             org_size = "11-50 employees", 
-                             department_size = "Just me", 
-                             highest_education = "Bachelor's degree", 
+                             career_duration = "1-4years", 
+                             org_size = "11-50employees", 
+                             department_size = "Justme", 
                              salary = 55000),
         interval = "confidence")
 ```
