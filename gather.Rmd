@@ -13,6 +13,7 @@ library(ggplot2)
 library(readr)
 library(janitor)
 library(fastDummies)
+library(broom)
 ```
 
 ```{r cleaning and loading data, echo=FALSE}
@@ -170,5 +171,49 @@ census_2017 %>%
   xlim(0.5, 2.7) +
   labs(title = "Designers by Employment Status",
        subtitle = "From 2017 Design Census")
+```
+
+```{r regresson}
+
+# Salary predictor
+
+model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size + highest_education + job_satisfaction_level, data = census_2017)
+
+model_salary %>%
+  tidy()
+
+predict(model_salary, tibble(age = 22, 
+                             gender = "Female", 
+                             career_duration = "1-4 years", 
+                             org_size = "11-50 employees", 
+                             department_size = "Just me", 
+                             highest_education = "Bachelor's degree",
+                             job_satisfaction_level = "Pretty good"),
+        interval = "confidence")
+
+
+# Job Satisfaction predictor
+
+satisfaction_levels <- tibble(
+  job_satisfaction_level = c("Not great", "Pretty good", "The best", "The worst", "Not sure"),
+  level_num = c(2, 3, 4, 1, NA)
+)
+
+model_satisfaction_data_2017 <- left_join(census_2017, satisfaction_levels, by = "job_satisfaction_level") %>%
+  filter(job_satisfaction_level != "Not sure")
+
+model_satisfaction <- lm(level_num ~ age + gender + career_duration + org_size + department_size + highest_education + salary, data = model_satisfaction_data_2017)
+
+model_satisfaction%>%
+  tidy()
+
+predict(model_satisfaction, tibble(age = 22, 
+                             gender = "Female", 
+                             career_duration = "1-4 years", 
+                             org_size = "11-50 employees", 
+                             department_size = "Just me", 
+                             highest_education = "Bachelor's degree", 
+                             salary = 55000),
+        interval = "confidence")
 ```
 
