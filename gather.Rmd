@@ -12,6 +12,7 @@ library(dplyr)
 library(ggplot2)
 library(readr)
 library(janitor)
+library(fastDummies)
 ```
 
 ```{r cleaning and loading data, echo=FALSE}
@@ -118,3 +119,56 @@ us_companies <- read.csv("./raw-data/us_companies.csv")
 fct_collapse(us_companies$company_category, `Data/Technology` = c("Data/Technology", "Data/Technology,"))
 fct_collapse(us_companies$company_category, `Housing/Real Estate` = c("Housing/Real Estate", "Housing/Real Estate,"))
 ```
+
+```{r tab 1, echo=FALSE}
+
+# Tab 1 : Who are our designers?
+
+# Graph for age
+
+census_2017 %>%
+  group_by(age) %>%
+  count() %>%
+  ggplot(aes(x = age, y = n)) +
+  geom_bar(stat = "identity", fill = "#4fe3bc") +
+  theme_minimal() +
+  labs(x = "Age",
+       y = "Number of Designers",
+       title = "Distribution of Designers by Age",
+       subtitle = "From 2017 Design Census")
+
+# Graph for gender
+
+gender_colors <- c("#eb6a90", "#6ab5eb", "#d081f0", "#4f32ad", "#8d7feb")
+census_2017 %>%
+  group_by(gender) %>%
+  count() %>%
+  mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+         prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+  ggplot(aes(x = 2, y = n, fill = gender)) +
+  geom_bar(stat = "identity", color = "white") +
+  geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+  coord_polar(theta = "y", start = 0) +
+  scale_fill_manual(values = gender_colors, name = "Gender") +
+  theme_void() +
+  xlim(0.5, 2.7) +
+  labs(title = "Designers by Gender",
+       subtitle = "From 2017 Design Census")
+
+# Graph for employment status
+
+census_2017 %>%
+  group_by(employment_status) %>%
+  count() %>%
+  mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+         prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+  ggplot(aes(x = 2, y = n, fill = employment_status)) +
+  geom_bar(stat = "identity", color = "white") +
+  geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+  coord_polar(theta = "y", start = 0) +
+    theme_void() +
+  xlim(0.5, 2.7) +
+  labs(title = "Designers by Employment Status",
+       subtitle = "From 2017 Design Census")
+```
+
