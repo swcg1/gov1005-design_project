@@ -174,7 +174,36 @@ salary_join <- tibble(
 )
 
 census_2019_model <- left_join(census_2019_raw, salary_join, by = "salary") %>%
-  select(age, gender, career_duration, org_size, department_size, design_satisfaction_level, salary)
+  select(age, gender, career_duration, org_size, department_size, design_satisfaction_level, salary_exact) %>%
+  mutate(job_satisfaction_level = design_satisfaction_level,
+         salary = salary_exact) %>%
+  select(-design_satisfaction_level, -salary_exact)
+
+# assign satisfaction level to a number using a join (for both 2017 and 2019)
+
+satisfaction_levels_2019 <- tibble(
+  job_satisfaction_level = c("Not really satisfied, but I deal" , "Happy, but there's room for improvement", "Extremely satisfied with my work situation", "Ready to call it quits", "Not sure"),
+  satisfaction_level = c(2, 3, 4, 1, NA)
+)
+
+satisfaction_levels_2017 <- tibble(
+  job_satisfaction_level = c("Not great", "Pretty good", "The best", "The worst", "Not sure"),
+  satisfaction_level = c(2, 3, 4, 1, NA)
+)
+
+census_2019_model <- left_join(census_2019_model, satisfaction_levels_2019, by = "job_satisfaction_level") %>%
+  filter(job_satisfaction_level != "Not sure") %>%
+  select(-job_satisfaction_level) %>%
+  mutate(year = "2019")
+
+census_2017_model <- left_join(census_2017_model, satisfaction_levels_2017, by = "job_satisfaction_level") %>%
+  filter(job_satisfaction_level != "Not sure") %>%
+  select(-job_satisfaction_level) %>%
+  mutate(year = "2017")
+
+# joining both 2017 and 2019 cleaned data
+
+census_model_joined <- rbind(census_2019_model, census_2017_model)
 
 ```
 
@@ -254,21 +283,7 @@ predict(model_salary, tibble(age = 22,
 
 # Job Satisfaction predictor
 
-satisfaction_levels_2017 <- tibble(
-  job_satisfaction_level = c("Not great", "Pretty good", "The best", "The worst", "Not sure"),
-  level_num = c(2, 3, 4, 1, NA)
-)
 
-model_satisfaction_data_2017 <- left_join(census_2017, satisfaction_levels_2017, by = "job_satisfaction_level") %>%
-  filter(job_satisfaction_level != "Not sure")
-
-satisfaction_levels_2019 <- tibble(
-  design_satisfaction_level = c("Not really satisfied, but I deal" , "Happy, but there's room for improvement", "Extremely satisfied with my work situation", "Ready to call it quits", "Not sure"),
-  level_num = c(2, 3, 4, 1, NA)
-)
-
-model_satisfaction_data_2019 <- left_join(census_2019, satisfaction_levels_2019, by = "design_satisfaction_level") %>%
-  filter(job_satisfaction_level != "Not sure")
 
 model_satisfaction <- lm(level_num ~ age + gender + career_duration + org_size + department_size + highest_education + salary, data = model_satisfaction_data_2017)
 
