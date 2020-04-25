@@ -309,17 +309,16 @@ census_2017 %>%
 
 # Salary predictor
 
-model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size + satisfaction_level, data = census_model_joined)
+model_salary <- lm(salary ~ age + gender + career_duration + org_size + department_size , data = census_model_joined)
 
 model_salary %>%
   tidy()
 
 prediction_salary <- predict(model_salary, tibble(age = 22, 
                              gender = "Female", 
-                             career_duration = "1-4years", 
-                             org_size = "11-50employees", 
-                             department_size = "Justme",
-                             satisfaction_level = 2),
+                             career_duration = "Less than 1 year", 
+                             org_size = "11-50 employees", 
+                             department_size = "Just Me"),
         interval = "confidence")
 
 
@@ -366,5 +365,7 @@ census_model_joined %>%
   geom_col(aes(fill = career_duration)) +
   scale_fill_manual(values = bar_palette, name = "Age ") +
   theme_classic()
-```
 
+
+```
+ 

@@ -14,6 +14,7 @@ library(readr)
 library(ggplot2)
 
 read_rds("census_model_joined.rds")
+read_rds("model_salary.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -37,7 +38,7 @@ ui <- fluidPage(
                  
                  # Show a plot of the generated distribution
                  mainPanel(
-                     plotOutput("tab1")
+                     
                  )
              )),
     tabPanel("By Salary and Job Satisfaction",
@@ -64,9 +65,41 @@ ui <- fluidPage(
                  )
              )
              ),
-    tabPanel("Predictor"
-             ),
-    tabPanel("By Location"
+    tabPanel("Predictor",
+             sidebarLayout(
+                 sidebarPanel(
+                     numericInput("age",
+                                  label = "How old are you?",
+                                  value = 21,
+                                  step = 1),
+                     selectInput("gender",
+                                 label = "Select your gender",
+                                 choices = list("Male", "Female", "Other"),
+                                 selected = "Female"),
+                     selectInput("career_duration",
+                                 label = "How long have you been a designer?",
+                                 choices = list("Less than 1 year", "1-4 years", "5-9 years", "10-14 years", "15-20 years", "20+ years"),
+                                 selected = "Less than 1 year"),
+                     selectInput("org_size",
+                                 label = "How large is the organization you currently work at?",
+                                 choices = list("1-10 employees", "11-50 employees", "51-100 employees", "101-250 employees", "251-500 employees", "501-1000 employees", "1000+ employees"),
+                                 selected = "1-10 employees"),
+                     selectInput("department_size",
+                                 label = "How large is your organization's design department?",
+                                 choices = list("Just Me", "2-4 people", "5-10 people", "11-20 people", "20+ people"),
+                                 selected = "Just Me")
+                 ),
+                 mainPanel(
+                     textOutput("prediction")
+                 )
+             )),
+    tabPanel("By Location",
+             sidebarLayout(
+                 sidebarPanel(),
+                 mainPanel(
+                     plotOutput("tab1")
+                 )
+             )
              )
     )
 )
@@ -284,8 +317,8 @@ server <- function(input, output) {
             scale_fill_manual(values = bar_palette, name = input$x_var) +
             theme_classic() +
             labs(x = input$x_var,
-                 y = "Mean Salary",
-                 title = paste("Salary by", input$x_var),
+                 y = paste("Mean", input$y_var),
+                 title = paste(input$y_var, "by", input$x_var),
                  subtitle = "Of Designers in the US in 2017")
         
         salary_age
@@ -298,12 +331,30 @@ server <- function(input, output) {
             scale_fill_manual(values = bar_palette, name = input$x_var) +
             theme_classic() +
             labs(x = input$x_var,
-                 y = "Mean Salary",
-                 title = paste("Salary by", input$x_var),
+                 y = paste("Mean", input$y_var),
+                 title = paste(input$y_var, "by", input$x_var),
                  subtitle = "Of Designers in the US in 2019")
         
         salary_age
     })
+    
+    predictor <- reactive({
+        predict(model_salary,
+                tibble(age = input$age,
+                       gender = input$gender,
+                       career_duration = input$career_duration,
+                       org_size = input$org_size,
+                       department_size = input$department_size))
+
+    })
+    
+    output$prediction <- renderText({
+        
+        prediction <- predictor()
+        
+        paste("Your predicted annual salary is $", round(prediction, digits = 0), sep = "")
+    })
+    
 }
 
 # Run the application 
