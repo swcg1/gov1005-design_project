@@ -221,7 +221,17 @@ census_model_joined <- rbind(census_2019_model, census_2017_model) %>%
          org_size = map_chr(org_size, ~ifelse(. == "Notsure", "Unsure", .)),
          department_size = str_replace_all(department_size, " ", ""),
          department_size = map_chr(department_size, ~ifelse(. == "21+people", "20+people", .))) %>%
-  filter(age < 150)
+  filter(age < 150) %>%
+  filter(age > 5) %>%
+  mutate(age_group = case_when(age < 21 ~ "<21",
+                               age > 20 & age <= 25 ~ "21-25",
+                               age > 25 & age <= 30 ~ "26-30",
+                               age > 30 & age <= 35 ~ "31-35",
+                               age > 35 & age <= 40 ~ "36-40",
+                               age > 40 & age <= 45 ~ "41-45",
+                               age > 45 & age <= 50 ~ "46-50",
+                               age > 50 & age <= 60 ~ "51-60",
+                               age > 60 ~ "60+"))
 
 ```
 
@@ -287,7 +297,7 @@ model_salary <- lm(salary ~ age + gender + career_duration + org_size + departme
 model_salary %>%
   tidy()
 
-predict(model_salary, tibble(age = 22, 
+prediction_salary <- predict(model_salary, tibble(age = 22, 
                              gender = "Female", 
                              career_duration = "1-4years", 
                              org_size = "11-50employees", 
@@ -311,5 +321,52 @@ predict(model_satisfaction, tibble(age = 22,
                              department_size = "Justme", 
                              salary = 55000),
         interval = "confidence")
+```
+
+```{r tab 2 graphs, echo=FALSE}
+bar_palette <- c('#6981e6', '#6f8ce6', '#7597e7', '#7aa2e7', '#7eade7', '#82b9e7', '#86c4e7', '#89cfe7', '#8cdbe6')
+
+census_model_joined %>%
+  filter(year == 2017) %>%
+  group_by(age_group) %>%
+  summarize(mean_salary = mean(salary)) %>%
+  ggplot(aes(age_group, mean_salary)) +
+  geom_col(aes(fill = age_group)) +
+  scale_fill_manual(values = bar_palette, name = "Age ") +
+  theme_classic() +
+  labs(x = "Age Group",
+       y = "Mean Salary",
+       title = "Salary by Age",
+       subtitle = "Of Designers in the US")
+
+# releveling factors
+
+census_model_joined$career_duration <- factor(census_model_joined$career_duration,
+                                              levels = c("Lessthan1year", "1-4years", "5-9years", "10-14years", "15-20years", "20+years"))
+
+levels(census_model_joined$career_duration) <- c("Less than 1 year", "1-4 years", "5-9 years", "10-14 years", "15-20 years", "20+ years")
+
+census_model_joined$org_size <- factor(census_model_joined$org_size,
+                                              levels = c("1-10employees", "11-50employees", "51-100employees", "101-250employees", "251-500employees", "501-1000employees", "1000+employees", ""))
+
+levels(census_model_joined$org_size) <- c("1-10 employees", "11-50 employees", "51-100 employees", "101-250 employees", "251-500 employees", "501-1000 employees", "1000+ employees", "")
+
+census_model_joined$department_size <- factor(census_model_joined$department_size,
+                                              levels = c("Justme", "2-4people", "5-10people", "11-20people", "20+people", ""))
+
+levels(census_model_joined$department_size) <- c("Just Me", "2-4 people", "5-10 people", "11-20 people", "20+ people", "")
+
+census_model_joined %>%
+  filter(year == 2017) %>%
+  group_by(career_duration) %>%
+  summarize(mean_salary = mean(salary)) %>%
+  ggplot(aes(career_duration, mean_salary)) +
+  geom_col(aes(fill = career_duration)) +
+  scale_fill_manual(values = bar_palette, name = "Age ") +
+  theme_classic() +
+  labs(x = "Age Group",
+       y = "Mean Salary",
+       title = "Salary by Age",
+       subtitle = "Of Designers in the US")
 ```
 
