@@ -84,91 +84,196 @@ server <- function(input, output) {
     )
     
     salary_satisfaction_react_2017 <- reactive({
-        if(input$x_var == "Age"){
-            summarized <- census_model_joined %>%
-                group_by(age_group) %>%
-                filter(year == 2017) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(age_group, mean_salary)) +
-                geom_col(aes(fill = age_group))
+        if(input$y_var == "Salary"){
+            if(input$x_var == "Age"){
+                summarized <- census_model_joined %>%
+                    group_by(age_group) %>%
+                    filter(year == 2017) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(age_group, mean_salary)) +
+                    geom_col(aes(fill = age_group))
+            }
+            else if(input$x_var == "Gender"){
+                summarized <- census_model_joined %>%
+                    group_by(gender) %>%
+                    filter(year == 2017) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(gender, mean_salary)) +
+                    geom_col(aes(fill = gender))
+            }
+            else if(input$x_var == "Career Duration"){
+                summarized <- census_model_joined %>%
+                    group_by(career_duration) %>%
+                    filter(year == 2017) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(career_duration, mean_salary)) +
+                    geom_col(aes(fill = career_duration))
+            }
+            else if(input$x_var == "Organization Size"){
+                summarized <- census_model_joined %>%
+                    group_by(org_size) %>%
+                    filter(year == 2017,
+                           !org_size == "") %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(org_size, mean_salary)) +
+                    geom_col(aes(fill = org_size))
+            }
+            else if(input$x_var == "Department Size"){
+                summarized <- census_model_joined %>%
+                    group_by(department_size) %>%
+                    filter(year == 2017,
+                           !department_size == "") %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(department_size, mean_salary)) +
+                    geom_col(aes(fill = department_size))
+            }
         }
-        else if(input$x_var == "Gender"){
-            summarized <- census_model_joined %>%
-                group_by(gender) %>%
-                filter(year == 2017) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(gender, mean_salary)) +
-                geom_col(aes(fill = gender))
-        }
-        else if(input$x_var == "Career Duration"){
-            summarized <- census_model_joined %>%
-                group_by(career_duration) %>%
-                filter(year == 2017) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(career_duration, mean_salary)) +
-                geom_col(aes(fill = career_duration))
-        }
-        else if(input$x_var == "Organization Size"){
-            summarized <- census_model_joined %>%
-                group_by(org_size) %>%
-                filter(year == 2017,
-                       !org_size == "") %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(org_size, mean_salary)) +
-                geom_col(aes(fill = org_size))
-        }
-        else if(input$x_var == "Department Size"){
-            summarized <- census_model_joined %>%
-                group_by(department_size) %>%
-                filter(year == 2017,
-                       !department_size == "") %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(department_size, mean_salary)) +
-                geom_col(aes(fill = department_size))
+        
+        else if(input$y_var == "Job Satisfaction"){
+            if(input$x_var == "Age"){
+                summarized <- census_model_joined %>%
+                    group_by(age_group) %>%
+                    filter(year == 2017,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(age_group, mean_satisfaction)) +
+                    geom_col(aes(fill = age_group))
+            }
+            else if(input$x_var == "Gender"){
+                summarized <- census_model_joined %>%
+                    group_by(gender) %>%
+                    filter(year == 2017,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(gender, mean_satisfaction)) +
+                    geom_col(aes(fill = gender))
+            }
+            else if(input$x_var == "Career Duration"){
+                summarized <- census_model_joined %>%
+                    group_by(career_duration) %>%
+                    filter(year == 2017,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(career_duration, mean_satisfaction)) +
+                    geom_col(aes(fill = career_duration))
+            }
+            else if(input$x_var == "Organization Size"){
+                summarized <- census_model_joined %>%
+                    group_by(org_size) %>%
+                    filter(year == 2017,
+                           !org_size == "",
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(org_size, mean_satisfaction)) +
+                    geom_col(aes(fill = org_size))
+            }
+            else if(input$x_var == "Department Size"){
+                summarized <- census_model_joined %>%
+                    group_by(department_size) %>%
+                    filter(year == 2017,
+                           !department_size == "",
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(department_size, mean_satisfaction)) +
+                    geom_col(aes(fill = department_size))
+            }
         }
     })
     
     salary_satisfaction_react_2019 <- reactive({
-        if(input$x_var == "Age"){
-            summarized <- census_model_joined %>%
-                group_by(age_group) %>%
-                filter(year == 2019) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(age_group, mean_salary)) +
-                geom_col(aes(fill = age_group))
+        if(input$y_var == "Salary"){
+            if(input$x_var == "Age"){
+                summarized <- census_model_joined %>%
+                    group_by(age_group) %>%
+                    filter(year == 2019) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(age_group, mean_salary)) +
+                    geom_col(aes(fill = age_group))
+            }
+            else if(input$x_var == "Gender"){
+                summarized <- census_model_joined %>%
+                    group_by(gender) %>%
+                    filter(year == 2019) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(gender, mean_salary)) +
+                    geom_col(aes(fill = gender))
+            }
+            else if(input$x_var == "Career Duration"){
+                summarized <- census_model_joined %>%
+                    group_by(career_duration) %>%
+                    filter(year == 2019) %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(career_duration, mean_salary)) +
+                    geom_col(aes(fill = career_duration))
+            }
+            else if(input$x_var == "Organization Size"){
+                summarized <- census_model_joined %>%
+                    group_by(org_size) %>%
+                    filter(year == 2019,
+                           !org_size == "") %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(org_size, mean_salary)) +
+                    geom_col(aes(fill = org_size))
+            }
+            else if(input$x_var == "Department Size"){
+                summarized <- census_model_joined %>%
+                    group_by(department_size) %>%
+                    filter(year == 2019,
+                           !department_size == "") %>%
+                    summarize(mean_salary = mean(salary)) %>%
+                    ggplot(aes(department_size, mean_salary)) +
+                    geom_col(aes(fill = department_size))
+            }
         }
-        else if(input$x_var == "Gender"){
-            summarized <- census_model_joined %>%
-                group_by(gender) %>%
-                filter(year == 2019) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(gender, mean_salary)) +
-                geom_col(aes(fill = gender))
-        }
-        else if(input$x_var == "Career Duration"){
-            summarized <- census_model_joined %>%
-                group_by(career_duration) %>%
-                filter(year == 2019) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(career_duration, mean_salary)) +
-                geom_col(aes(fill = career_duration))
-        }
-        else if(input$x_var == "Organization Size"){
-            summarized <- census_model_joined %>%
-                group_by(org_size) %>%
-                filter(year == 2019,
-                       !is.na(org_size)) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(org_size, mean_salary)) +
-                geom_col(aes(fill = org_size))
-        }
-        else if(input$x_var == "Department Size"){
-            summarized <- census_model_joined %>%
-                group_by(department_size) %>%
-                filter(year == 2019) %>%
-                summarize(mean_salary = mean(salary)) %>%
-                ggplot(aes(department_size, mean_salary)) +
-                geom_col(aes(fill = department_size))
+        
+        else if(input$y_var == "Job Satisfaction"){
+            if(input$x_var == "Age"){
+                summarized <- census_model_joined %>%
+                    group_by(age_group) %>%
+                    filter(year == 2019,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(age_group, mean_satisfaction)) +
+                    geom_col(aes(fill = age_group))
+            }
+            else if(input$x_var == "Gender"){
+                summarized <- census_model_joined %>%
+                    group_by(gender) %>%
+                    filter(year == 2019,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(gender, mean_satisfaction)) +
+                    geom_col(aes(fill = gender))
+            }
+            else if(input$x_var == "Career Duration"){
+                summarized <- census_model_joined %>%
+                    group_by(career_duration) %>%
+                    filter(year == 2019,
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(career_duration, mean_satisfaction)) +
+                    geom_col(aes(fill = career_duration))
+            }
+            else if(input$x_var == "Organization Size"){
+                summarized <- census_model_joined %>%
+                    group_by(org_size) %>%
+                    filter(year == 2019,
+                           !org_size == "",
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(org_size, mean_satisfaction)) +
+                    geom_col(aes(fill = org_size))
+            }
+            else if(input$x_var == "Department Size"){
+                summarized <- census_model_joined %>%
+                    group_by(department_size) %>%
+                    filter(year == 2019,
+                           !department_size == "",
+                           !is.na(satisfaction_level)) %>%
+                    summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+                    ggplot(aes(department_size, mean_satisfaction)) +
+                    geom_col(aes(fill = department_size))
+            }
         }
     })
     

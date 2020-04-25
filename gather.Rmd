@@ -191,12 +191,12 @@ census_2019_model <- left_join(census_2019_raw, salary_join, by = "salary") %>%
 
 satisfaction_levels_2019 <- tibble(
   job_satisfaction_level = c("Not really satisfied, but I deal" , "Happy, but there's room for improvement", "Extremely satisfied with my work situation", "Ready to call it quits", "Not sure"),
-  satisfaction_level = c(2, 3, 4, 1, NA)
+  satisfaction_level = c(1, 2, 3, 0, NA)
 )
 
 satisfaction_levels_2017 <- tibble(
   job_satisfaction_level = c("Not great", "Pretty good", "The best", "The worst", "Not sure"),
-  satisfaction_level = c(2, 3, 4, 1, NA)
+  satisfaction_level = c(1, 2, 3, 0, NA)
 )
 
 census_2019_model <- left_join(census_2019_model, satisfaction_levels_2019, by = "job_satisfaction_level") %>%
@@ -232,6 +232,23 @@ census_model_joined <- rbind(census_2019_model, census_2017_model) %>%
                                age > 45 & age <= 50 ~ "46-50",
                                age > 50 & age <= 60 ~ "51-60",
                                age > 60 ~ "60+"))
+
+# releveling factors
+
+census_model_joined$career_duration <- factor(census_model_joined$career_duration,
+                                              levels = c("Lessthan1year", "1-4years", "5-9years", "10-14years", "15-20years", "20+years"))
+
+levels(census_model_joined$career_duration) <- c("Less than 1 year", "1-4 years", "5-9 years", "10-14 years", "15-20 years", "20+ years")
+
+census_model_joined$org_size <- factor(census_model_joined$org_size,
+                                              levels = c("1-10employees", "11-50employees", "51-100employees", "101-250employees", "251-500employees", "501-1000employees", "1000+employees", ""))
+
+levels(census_model_joined$org_size) <- c("1-10 employees", "11-50 employees", "51-100 employees", "101-250 employees", "251-500 employees", "501-1000 employees", "1000+ employees", "")
+
+census_model_joined$department_size <- factor(census_model_joined$department_size,
+                                              levels = c("Justme", "2-4people", "5-10people", "11-20people", "20+people", ""))
+
+levels(census_model_joined$department_size) <- c("Just Me", "2-4 people", "5-10 people", "11-20 people", "20+ people", "")
 
 ```
 
@@ -339,34 +356,15 @@ census_model_joined %>%
        title = "Salary by Age",
        subtitle = "Of Designers in the US")
 
-# releveling factors
 
-census_model_joined$career_duration <- factor(census_model_joined$career_duration,
-                                              levels = c("Lessthan1year", "1-4years", "5-9years", "10-14years", "15-20years", "20+years"))
-
-levels(census_model_joined$career_duration) <- c("Less than 1 year", "1-4 years", "5-9 years", "10-14 years", "15-20 years", "20+ years")
-
-census_model_joined$org_size <- factor(census_model_joined$org_size,
-                                              levels = c("1-10employees", "11-50employees", "51-100employees", "101-250employees", "251-500employees", "501-1000employees", "1000+employees", ""))
-
-levels(census_model_joined$org_size) <- c("1-10 employees", "11-50 employees", "51-100 employees", "101-250 employees", "251-500 employees", "501-1000 employees", "1000+ employees", "")
-
-census_model_joined$department_size <- factor(census_model_joined$department_size,
-                                              levels = c("Justme", "2-4people", "5-10people", "11-20people", "20+people", ""))
-
-levels(census_model_joined$department_size) <- c("Just Me", "2-4 people", "5-10 people", "11-20 people", "20+ people", "")
 
 census_model_joined %>%
   filter(year == 2017) %>%
   group_by(career_duration) %>%
-  summarize(mean_salary = mean(salary)) %>%
-  ggplot(aes(career_duration, mean_salary)) +
+  summarize(mean_satisfaction = mean(satisfaction_level)) %>%
+  ggplot(aes(career_duration, mean_satisfaction)) +
   geom_col(aes(fill = career_duration)) +
   scale_fill_manual(values = bar_palette, name = "Age ") +
-  theme_classic() +
-  labs(x = "Age Group",
-       y = "Mean Salary",
-       title = "Salary by Age",
-       subtitle = "Of Designers in the US")
+  theme_classic()
 ```
 
