@@ -13,8 +13,8 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 
-read_rds("census_model_joined.rds")
-read_rds("model_salary.rds")
+census_model_joined <- read_rds("./census_model_joined.rds")
+model_salary <- read_rds("./model_salary.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -90,7 +90,11 @@ ui <- fluidPage(
                                  selected = "Just Me")
                  ),
                  mainPanel(
-                     textOutput("prediction")
+                     textOutput("salary_text"),
+                     tags$style(type = "text/css", 
+                     "#salary_text{font-size: 25px
+                                 }" ),
+                     plotOutput("salary_plot")
                  )
              )),
     tabPanel("By Location",
@@ -100,7 +104,48 @@ ui <- fluidPage(
                      plotOutput("tab1")
                  )
              )
-             )
+             ),
+    tabPanel("About",
+             mainPanel(
+                 h2("About the Topic"),
+                 
+                 p("As an emerging product and UI/UX designer coming from an unconventional design
+        background, I have recently been interested in taking a deeper dive into better
+        understanding what the design field quantitatively looks like. I am particularly
+        interested in learning more about what the demographic of current designers are,
+        how its have changed over the last two years, and how it correlates with the
+        general spread of companies and industries in the US."),
+                 
+                 p("This project aims to hopefully elucidate design career trends for anyone
+        interested in entering the field, already in the field, or curious about design."),
+                 
+                 h2("About the Data"),
+                 
+                 p("The Design Census data was collected by The American Institute of Graphic Arts
+        (AIGA) most recently in 2017 and 2019. The Design Census was a survey that was
+        circulated in the design community and open to public for 5 weeks. The raw csv
+        data files were downloaded from the respective Design Census websites, which can
+        be found", a("here for the 2019 data", href = "https://designcensus.org/"), "and",
+                 a("here for the 2017 data.", href = "http://designcensus2017.aiga.org/")),
+                 
+                 
+                 p("The data set on US companies was from the Open Data 500 Project, which is the
+        first comprehensive study of US companies that use open government data
+        conducted by the GovLab of New York University. The raw csv data files were
+        downloaded from the Open Data 500 website, which can be found", 
+                   a("here.", href ="https://www.opendata500.com/us/")),
+                 
+                 p("In order to make sense of the zip codes from the aforementioned data sets, a US
+        zip codes data set from SimpleMaps was used to configure zip codes to states and
+        cities. The zip codes dataset can be found", a("here.", href = "https://simplemaps.com/data/us-zips")),
+                 
+                 h2("About me"),
+                 
+                 p("I am a senior concentrating in Neuroscience with a secondary in Mind, Brain, and Behavior.
+                 When I'm not studying science, I like to design things!"),
+                 p("Check out my design", a("portfolio", href = "http://www.stephcheng.com"), "and the code for this project can be found on my",
+                   a("Github!", href = "https://github.com/swcg1/gov1005-final_project"))
+             ))
     )
 )
 
@@ -344,17 +389,27 @@ server <- function(input, output) {
                        gender = input$gender,
                        career_duration = input$career_duration,
                        org_size = input$org_size,
-                       department_size = input$department_size))
+                       department_size = input$department_size),
+                interval = "confidence")
 
     })
     
-    output$prediction <- renderText({
+    output$salary_text<- renderText({
         
         prediction <- predictor()
         
-        paste("Your predicted annual salary is $", round(prediction, digits = 0), sep = "")
+        paste("Your predicted annual salary is around $", 
+              round(prediction[1], digits = 0), 
+              " and can be as low as $", 
+              round(prediction[2], digits = 0), 
+              " to as high as $", 
+              round(prediction[3], digits = 0),
+              ".",
+              sep = "")
     })
     
+    output$salary_plot
+
 }
 
 # Run the application 

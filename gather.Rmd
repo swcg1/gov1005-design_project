@@ -250,6 +250,8 @@ census_model_joined$department_size <- factor(census_model_joined$department_siz
 
 levels(census_model_joined$department_size) <- c("Just Me", "2-4 people", "5-10 people", "11-20 people", "20+ people", "")
 
+write_rds(census_model_joined,"./design_project/census_model_joined.rds")
+
 ```
 
 
@@ -319,9 +321,22 @@ prediction_salary <- predict(model_salary, tibble(age = 22,
                              career_duration = "Less than 1 year", 
                              org_size = "11-50 employees", 
                              department_size = "Just Me"),
-        interval = "confidence")
+        interval = "confidence") %>%
+  as_data_frame()
 
 
+ggplot() +
+  scale_x_continuous(name = "x") +
+  scale_y_continuous(name = "y") +
+  geom_rect(data = prediction_salary, aes(xmin = prediction_salary[1] %>% pull(), 
+                                          xmax = prediction_salary[3] %>% pull(), 
+                                          ymin = 0, 
+                                          ymax = 1))
+
+
+```
+
+```{r satisfaction predictior}
 # Job Satisfaction predictor
 
 
@@ -337,7 +352,10 @@ predict(model_satisfaction, tibble(age = 22,
                              department_size = "Justme", 
                              salary = 55000),
         interval = "confidence")
+
+write_rds(model_salary,"./design_project/model_salary.rds")
 ```
+
 
 ```{r tab 2 graphs, echo=FALSE}
 bar_palette <- c('#6981e6', '#6f8ce6', '#7597e7', '#7aa2e7', '#7eade7', '#82b9e7', '#86c4e7', '#89cfe7', '#8cdbe6')
