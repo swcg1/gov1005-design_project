@@ -90,10 +90,7 @@ ui <- fluidPage(
                                  selected = "Just Me")
                  ),
                  mainPanel(
-                     textOutput("salary_text"),
-                     tags$style(type = "text/css", 
-                     "#salary_text{font-size: 25px
-                                 }" ),
+                     h2("Your predicted salary"),
                      plotOutput("salary_plot")
                  )
              )),
@@ -394,21 +391,43 @@ server <- function(input, output) {
 
     })
     
-    output$salary_text<- renderText({
-        
+    output$salary_plot <- renderPlot({
         prediction <- predictor()
         
-        paste("Your predicted annual salary is around $", 
-              round(prediction[1], digits = 0), 
-              " and can be as low as $", 
-              round(prediction[2], digits = 0), 
-              " to as high as $", 
-              round(prediction[3], digits = 0),
-              ".",
-              sep = "")
+        ggplot() +
+            scale_x_continuous(name = "x") +
+            scale_y_continuous(name = "y") +
+            geom_rect(aes(xmin = prediction[2],
+                          xmax = prediction[3], 
+                          ymin = 0, 
+                          ymax = 0.5),
+                      fill = "#8cc8db", alpha = 0.5) +
+            geom_segment(aes(x = prediction[1], y = 0, xend = prediction[1], yend = 0.5), 
+                         color = "#8cc8db", size = 2) +
+            ylim(-0.5, 0.7) +
+            theme_void() +
+            annotate("text", 
+                     x = prediction[2] + 500,
+                     y = -0.1,
+                     label = paste("Lower estimation: \n $", round(prediction[2]), sep = ""),
+                     size = 6,
+                     color = "#93a5ab",
+                     fontface = 2) +
+            annotate("text", 
+                     x = prediction[3] - 500,
+                     y = -0.1,
+                     label = paste("Upper estimation: \n $", round(prediction[3]), sep = ""),
+                     size = 6,
+                     color = "#93a5ab",
+                     fontface = 2) +
+            annotate("text", 
+                     x = prediction[1],
+                     y = 0.65,
+                     label = paste("Estimated salary: \n $", round(prediction[1]), sep = ""),
+                     size = 7,
+                     color = "#37758a",
+                     fontface = 2)
     })
-    
-    output$salary_plot
 
 }
 

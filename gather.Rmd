@@ -321,18 +321,48 @@ prediction_salary <- predict(model_salary, tibble(age = 22,
                              career_duration = "Less than 1 year", 
                              org_size = "11-50 employees", 
                              department_size = "Just Me"),
-        interval = "confidence") %>%
-  as_data_frame()
+        interval = "confidence")
 
+salary_range <- quantile(census_model_joined$salary, probs = c(0, 0.25, 0.5,0.75, 1))
 
 ggplot() +
   scale_x_continuous(name = "x") +
   scale_y_continuous(name = "y") +
-  geom_rect(data = prediction_salary, aes(xmin = prediction_salary[1] %>% pull(), 
-                                          xmax = prediction_salary[3] %>% pull(), 
-                                          ymin = 0, 
-                                          ymax = 1))
+  geom_rect(aes(xmin = prediction_salary[2],
+                xmax = prediction_salary[3], 
+                ymin = 0, 
+                ymax = 1, fill = "blue"),
+            fill = "blue", alpha = 1) +
+  geom_rect(aes(xmin = salary_range[1],
+                xmax = salary_range[5],
+                ymin = 0,
+                ymax = 1, color = "black"),
+            color = "black", alpha = 0)
 
+ggplot() +
+  scale_x_continuous(name = "x") +
+  scale_y_continuous(name = "y") +
+  geom_rect(aes(xmin = prediction_salary[2],
+                xmax = prediction_salary[3], 
+                ymin = 0, 
+                ymax = 1),
+            fill = "#8cc8db", alpha = 0.5) +
+  geom_segment(aes(x = prediction_salary[1], y = 0, xend = prediction_salary[1], yend = 1), 
+               color = "#8cc8db", size = 2) +
+  ylim(-0.3, 1.3) +
+  theme_void() +
+  annotate("text", 
+           x = prediction_salary[2] + 500,
+           y = -0.1,
+           label = paste("Lower estimation: \n $", round(prediction_salary[2]), sep = "")) +
+  annotate("text", 
+           x = prediction_salary[3] - 500,
+           y = -0.1,
+           label = paste("Upper estimation: \n $", round(prediction_salary[3]), sep = "")) +
+   annotate("text", 
+           x = prediction_salary[1],
+           y = 1.1,
+           label = paste("Estimated salary: \n $", round(prediction_salary[1]), sep = ""))
 
 ```
 
