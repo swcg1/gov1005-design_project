@@ -12,9 +12,11 @@ library(tidyverse)
 library(dplyr)
 library(readr)
 library(ggplot2)
+library(patchwork)
 
 census_model_joined <- read_rds("./census_model_joined.rds")
 model_salary <- read_rds("./model_salary.rds")
+model_satisfaction <- read_rds("./model_satisfaction.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -90,8 +92,14 @@ ui <- fluidPage(
                                  selected = "Just Me")
                  ),
                  mainPanel(
-                     h2("Your predicted salary"),
-                     plotOutput("salary_plot")
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("Salary",
+                                          h2("Your predicted salary"),
+                                          plotOutput("salary_plot")),
+                                 tabPanel("Job Satisfaction",
+                                          h2("Your predicted job satisfaction"),
+                                          plotOutput("satisfaction_plot")))
+
                  )
              )),
     tabPanel("By Location",
@@ -391,12 +399,22 @@ server <- function(input, output) {
 
     })
     
+    predictor_sat <- reactive({
+        predict(model_satisfaction,
+                tibble(age = input$age,
+                       gender = input$gender,
+                       career_duration = input$career_duration,
+                       org_size = input$org_size,
+                       department_size = input$department_size),
+                interval = "confidence")
+        
+    })
+    
     output$salary_plot <- renderPlot({
         prediction <- predictor()
+        salary_range <- quantile(census_model_joined$salary, probs = c(0, 0.25, 0.5,0.75, 0.95))
         
-        ggplot() +
-            scale_x_continuous(name = "x") +
-            scale_y_continuous(name = "y") +
+        g1 <- ggplot() +
             geom_rect(aes(xmin = prediction[2],
                           xmax = prediction[3], 
                           ymin = 0, 
@@ -404,31 +422,158 @@ server <- function(input, output) {
                       fill = "#8cc8db", alpha = 0.5) +
             geom_segment(aes(x = prediction[1], y = 0, xend = prediction[1], yend = 0.5), 
                          color = "#8cc8db", size = 2) +
-            ylim(-0.5, 0.7) +
+            ylim(-0.4, 0.85) +
             theme_void() +
             annotate("text", 
                      x = prediction[2] + 500,
-                     y = -0.1,
+                     y = -0.15,
                      label = paste("Lower estimation: \n $", round(prediction[2]), sep = ""),
                      size = 6,
                      color = "#93a5ab",
                      fontface = 2) +
             annotate("text", 
                      x = prediction[3] - 500,
-                     y = -0.1,
+                     y = -0.15,
                      label = paste("Upper estimation: \n $", round(prediction[3]), sep = ""),
                      size = 6,
                      color = "#93a5ab",
                      fontface = 2) +
             annotate("text", 
                      x = prediction[1],
-                     y = 0.65,
+                     y = 0.7,
                      label = paste("Estimated salary: \n $", round(prediction[1]), sep = ""),
                      size = 7,
                      color = "#37758a",
                      fontface = 2)
+        
+        g2 <- ggplot() +
+            geom_rect(aes(xmin = prediction[2],
+                          xmax = prediction[3], 
+                          ymin = 0, 
+                          ymax = 0.5, fill = "blue"),
+                      fill = "#8cc8db", alpha = 0.5) +
+            geom_segment(aes(x = prediction[1], y = 0, xend = prediction[1], yend = 0.5), 
+                         color = "#8cc8db", size = 1) +
+            geom_rect(aes(xmin = salary_range[1],
+                          xmax = salary_range[5],
+                          ymin = 0,
+                          ymax = 0.5),
+                      fill = "grey", alpha = 0.2) +
+            geom_segment(aes(x = salary_range[1],
+                             y = 0.5,
+                             xend = salary_range[1],
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = salary_range[1], y = -0.35,
+                     label = "0th \n percentile \n ($0)",
+                     size = 5) +
+            geom_segment(aes(x = salary_range[2],
+                             y = 0.5,
+                             xend = salary_range[2],
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = salary_range[2], y = -0.35,
+                     label = paste("25th \n percentile \n ($", salary_range[2], ")", sep = ""),
+                     size = 5) +
+            geom_segment(aes(x = salary_range[3],
+                             y = 0.5,
+                             xend = salary_range[3],
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = salary_range[3], y = -0.35,
+                     label = paste("50th \n percentile \n ($", salary_range[3], ")", sep = ""),
+                     size = 5) +
+            geom_segment(aes(x = salary_range[4],
+                             y = 0.5,
+                             xend = salary_range[4],
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = salary_range[4], y = -0.35,
+                     label = paste("75th \n percentile \n ($", salary_range[4], ")", sep = ""),
+                     size = 5) +
+            geom_segment(aes(x = salary_range[5],
+                             y = 0.5,
+                             xend = salary_range[5],
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = salary_range[5], y = -0.35,
+                     label = paste("95th \n percentile \n ($", salary_range[3], ")", sep = ""),
+                     size = 5) +
+            annotate("text", x = prediction[1], y = 0.6,
+                     label = "Your estimated salary range", 
+                     color = "#37758a",
+                     size = 5) +
+            ylim(-0.48, 0.65) +
+            xlim(-500, salary_range[5] + 500) +
+            theme_void()
+        
+        g1 / g2
     })
 
+    output$satisfaction_plot <- renderPlot({
+        prediction <- predictor_sat()
+        
+        ggplot() +
+            geom_rect(aes(xmin = prediction[2],
+                          xmax = prediction[3], 
+                          ymin = 0, 
+                          ymax = 0.5, fill = "blue"),
+                      fill = "#8cc8db", alpha = 0.5) +
+            geom_segment(aes(x = prediction[1], y = 0, xend = prediction[1], yend = 0.5), 
+                         color = "#8cc8db", size = 1) +
+            geom_rect(aes(xmin = 0,
+                          xmax = 4,
+                          ymin = 0,
+                          ymax = 0.5),
+                      fill = "grey", alpha = 0.2) +
+            geom_segment(aes(x = 0,
+                             y = 0.5,
+                             xend = 0,
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = 0, y = -0.25,
+                     label = "The Worst",
+                     size = 5) +
+            geom_segment(aes(x = 1,
+                             y = 0.5,
+                             xend = 1,
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = 1, y = -0.25,
+                     label = "Not Bad",
+                     size = 5) +
+            geom_segment(aes(x = 2,
+                             y = 0.5,
+                             xend = 2,
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = 2, y = -0.25,
+                     label = "Good",
+                     size = 5) +
+            geom_segment(aes(x = 3,
+                             y = 0.5,
+                             xend = 3,
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = 3, y = -0.25,
+                     label = "Great",
+                     size = 5) +
+            geom_segment(aes(x = 4,
+                             y = 0.5,
+                             xend = 4,
+                             yend = -0.2),
+                         linetype = 2) +
+            annotate("text", x = 4, y = -0.25,
+                     label = "The Best",
+                     size = 5) +
+            annotate("text", x = prediction[1], y = 0.6,
+                     label = "Your estimated satisfaction", 
+                     color = "#37758a",
+                     size = 5) +
+            ylim(-0.48, 0.65) +
+            xlim(-1, 5) +
+            theme_void()
+    })
 }
 
 # Run the application 

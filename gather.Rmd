@@ -323,21 +323,62 @@ prediction_salary <- predict(model_salary, tibble(age = 22,
                              department_size = "Just Me"),
         interval = "confidence")
 
-salary_range <- quantile(census_model_joined$salary, probs = c(0, 0.25, 0.5,0.75, 1))
+salary_range <- quantile(census_model_joined$salary, probs = c(0, 0.25, 0.5,0.75, 0.95))
 
 ggplot() +
-  scale_x_continuous(name = "x") +
-  scale_y_continuous(name = "y") +
   geom_rect(aes(xmin = prediction_salary[2],
                 xmax = prediction_salary[3], 
                 ymin = 0, 
-                ymax = 1, fill = "blue"),
-            fill = "blue", alpha = 1) +
+                ymax = 0.5, fill = "blue"),
+            fill = "#8cc8db", alpha = 0.5) +
+  geom_segment(aes(x = prediction_salary[1], y = 0, xend = prediction_salary[1], yend = 0.5), 
+               color = "#8cc8db", size = 1) +
   geom_rect(aes(xmin = salary_range[1],
                 xmax = salary_range[5],
                 ymin = 0,
-                ymax = 1, color = "black"),
-            color = "black", alpha = 0)
+                ymax = 0.5),
+            fill = "grey", alpha = 0.2) +
+  geom_segment(aes(x = salary_range[1],
+                   y = 0.5,
+                   xend = salary_range[1],
+                   yend = -0.2),
+               linetype = 2) +
+  annotate("text", x = salary_range[1], y = -0.25,
+           label = "0th percentile") +
+   geom_segment(aes(x = salary_range[2],
+                   y = 0.5,
+                   xend = salary_range[2],
+                   yend = -0.2),
+               linetype = 2) +
+  annotate("text", x = salary_range[2], y = -0.25,
+           label = "25th percentile") +
+     geom_segment(aes(x = salary_range[3],
+                   y = 0.5,
+                   xend = salary_range[3],
+                   yend = -0.2),
+               linetype = 2) +
+  annotate("text", x = salary_range[3], y = -0.25,
+           label = "50th percentile") +
+     geom_segment(aes(x = salary_range[4],
+                   y = 0.5,
+                   xend = salary_range[4],
+                   yend = -0.2),
+               linetype = 2) +
+  annotate("text", x = salary_range[4], y = -0.25,
+           label = "75th percentile") +
+     geom_segment(aes(x = salary_range[5],
+                   y = 0.5,
+                   xend = salary_range[5],
+                   yend = -0.2),
+               linetype = 2) +
+  annotate("text", x = salary_range[5], y = -0.25,
+           label = "95th percentile") +
+  annotate("text", x = prediction_salary[1], y = 0.6,
+           label = "Your estimated \n salary range", 
+           color = "#37758a") +
+  ylim(-0.3, 0.8) +
+  xlim(-300, salary_range[5] + 300) +
+  theme_void()
 
 ggplot() +
   scale_x_continuous(name = "x") +
@@ -370,20 +411,19 @@ ggplot() +
 # Job Satisfaction predictor
 
 
-model_satisfaction <- lm(satisfaction_level ~ age + gender + career_duration + org_size + department_size + salary, data = census_model_joined)
+model_satisfaction <- lm(satisfaction_level ~ age + gender + career_duration + org_size + department_size , data = census_model_joined)
 
 model_satisfaction%>%
   tidy()
 
-predict(model_satisfaction, tibble(age = 22, 
+prediction_satisfaction <- predict(model_satisfaction, tibble(age = 22, 
                              gender = "Female", 
-                             career_duration = "1-4years", 
-                             org_size = "11-50employees", 
-                             department_size = "Justme", 
-                             salary = 55000),
+                             career_duration = "Less than 1 year", 
+                             org_size = "11-50 employees", 
+                             department_size = "Just Me"),
         interval = "confidence")
 
-write_rds(model_salary,"./design_project/model_salary.rds")
+write_rds(model_satisfaction,"./design_project/model_satisfaction.rds")
 ```
 
 
