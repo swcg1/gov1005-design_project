@@ -522,7 +522,7 @@ server <- function(input, output) {
             geom_segment(aes(x = prediction[1], y = 0, xend = prediction[1], yend = 0.5), 
                          color = "#8cc8db", size = 1) +
             geom_rect(aes(xmin = 0,
-                          xmax = 4,
+                          xmax = 3,
                           ymin = 0,
                           ymax = 0.5),
                       fill = "grey", alpha = 0.2) +
@@ -540,7 +540,7 @@ server <- function(input, output) {
                              yend = -0.2),
                          linetype = 2) +
             annotate("text", x = 1, y = -0.25,
-                     label = "Not Bad",
+                     label = "Alright",
                      size = 5) +
             geom_segment(aes(x = 2,
                              y = 0.5,
@@ -548,7 +548,7 @@ server <- function(input, output) {
                              yend = -0.2),
                          linetype = 2) +
             annotate("text", x = 2, y = -0.25,
-                     label = "Good",
+                     label = "Great",
                      size = 5) +
             geom_segment(aes(x = 3,
                              y = 0.5,
@@ -556,14 +556,6 @@ server <- function(input, output) {
                              yend = -0.2),
                          linetype = 2) +
             annotate("text", x = 3, y = -0.25,
-                     label = "Great",
-                     size = 5) +
-            geom_segment(aes(x = 4,
-                             y = 0.5,
-                             xend = 4,
-                             yend = -0.2),
-                         linetype = 2) +
-            annotate("text", x = 4, y = -0.25,
                      label = "The Best",
                      size = 5) +
             annotate("text", x = prediction[1], y = 0.6,
@@ -571,7 +563,7 @@ server <- function(input, output) {
                      color = "#37758a",
                      size = 5) +
             ylim(-0.48, 0.65) +
-            xlim(-1, 5) +
+            xlim(-1, 4) +
             theme_void()
     })
 }
