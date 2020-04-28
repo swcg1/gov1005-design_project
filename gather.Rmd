@@ -261,7 +261,8 @@ write_rds(census_model_joined,"./design_project/census_model_joined.rds")
 
 # Graph for age
 
-census_2017 %>%
+census_model_joined %>%
+  filter(year == 2017) %>%
   group_by(age) %>%
   count() %>%
   ggplot(aes(x = age, y = n)) +
@@ -292,18 +293,19 @@ census_2017 %>%
 
 # Graph for employment status
 
-census_2017 %>%
-  group_by(employment_status) %>%
+census_model_joined %>%
+  filter(year == 2017) %>%
+  group_by(career_duration) %>%
   count() %>%
   mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
          prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
-  ggplot(aes(x = 2, y = n, fill = employment_status)) +
+  ggplot(aes(x = 2, y = n, fill = career_duration)) +
   geom_bar(stat = "identity", color = "white") +
   geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
   coord_polar(theta = "y", start = 0) +
     theme_void() +
   xlim(0.5, 2.7) +
-  labs(title = "Designers by Employment Status",
+  labs(title = "Designers by Career Duration",
        subtitle = "From 2017 Design Census")
 ```
 

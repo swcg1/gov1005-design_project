@@ -13,6 +13,7 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 library(patchwork)
+library(shinythemes)
 
 census_model_joined <- read_rds("./census_model_joined.rds")
 model_salary <- read_rds("./model_salary.rds")
@@ -20,6 +21,7 @@ model_satisfaction <- read_rds("./model_satisfaction.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+    theme = shinytheme("cosmo"),
 
     # Application title
     titlePanel("Deep Dive into Design in America"),
@@ -31,18 +33,25 @@ ui <- fluidPage(
     tabPanel("Who Are Our Designers?", 
              sidebarLayout(
                  sidebarPanel(
-                     sliderInput("bins",
-                                 "Number of bins:",
-                                 min = 1,
-                                 max = 50,
-                                 value = 30)
+                     selectInput("metric",
+                                 label = "Choose a variable to investigate",
+                                 choices = list("Age",
+                                                "Gender",
+                                                "Career Duration",
+                                                "Organization Size",
+                                                "Department Size"))
                  ),
                  
                  # Show a plot of the generated distribution
                  mainPanel(
+                     tabsetPanel(type = "tabs",
+                                 tabPanel("2017",
+                                          plotOutput("tab1_2017")),
+                                 tabPanel("2019",
+                                          plotOutput("tab1_2019"))
                      
                  )
-             )),
+             ))),
     tabPanel("By Salary and Job Satisfaction",
              sidebarLayout(
                  sidebarPanel(
@@ -102,14 +111,14 @@ ui <- fluidPage(
 
                  )
              )),
-    tabPanel("By Location",
-             sidebarLayout(
-                 sidebarPanel(),
-                 mainPanel(
-                     plotOutput("tab1")
-                 )
-             )
-             ),
+   # tabPanel("By Location",
+            # sidebarLayout(
+            #     sidebarPanel(),
+             #    mainPanel(
+                     
+           #      )
+            # )
+            # ),
     tabPanel("About",
              mainPanel(
                  h2("About the Topic"),
@@ -156,15 +165,205 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    
 
-    output$tab1 <- renderPlot(
-        
-        census_model_joined %>%
-            group_by(age) %>%
+    tab1_2017_react <- reactive({
+        bar_palette <- c('#6981e6', '#6f8ce6', '#7597e7', '#7aa2e7', '#7eade7', '#82b9e7', '#86c4e7', '#89cfe7', '#8cdbe6')
+        if(input$metric == "Age"){
+            census_model_joined %>%
+            filter(year == 2017) %>%
+            group_by(age_group) %>%
             count() %>%
-            ggplot(aes(age, n)) +
-            geom_bar(stat = "identity")
-    )
+            ggplot(aes(x = age_group, y = n)) +
+            geom_bar(stat = "identity", fill = bar_palette) +
+            theme_minimal() +
+            labs(x = "Age",
+                 y = "Number of Designers",
+                 title = "Distribution of Designers by Age",
+                 subtitle = "From 2017 Design Census")
+
+        }
+        else if(input$metric == "Gender"){
+            gender_colors <- c("#eb6a90", "#6ab5eb", "#d081f0", "#4f32ad", "#8d7feb")
+            plot <- census_model_joined %>%
+                filter(year == 2017) %>%
+                group_by(gender) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 0.5, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = gender)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                scale_fill_manual(values = gender_colors, name = "Gender") +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Gender",
+                     subtitle = "From 2017 Design Census")
+        }
+        else if(input$metric == "Career Duration"){
+            plot <- census_model_joined %>%
+                filter(year == 2017) %>%
+                group_by(career_duration) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = career_duration)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Career Duration",
+                     subtitle = "From 2017 Design Census",
+                     fill = "Career Duration") +
+                scale_fill_brewer(palette = "Blues")
+        }
+        else if(input$metric == "Organization Size"){
+            plot <- census_model_joined %>%
+                filter(year == 2017,
+                       !org_size == "",
+                       !is.na(org_size)) %>%
+                group_by(org_size) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = org_size)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Organization Size",
+                     subtitle = "From 2017 Design Census",
+                     fill = input$metric) +
+                scale_fill_brewer(palette = "Blues")
+        }
+        else if(input$metric == "Department Size"){
+            plot <- census_model_joined %>%
+                filter(year == 2017,
+                       !department_size == "",
+                       !is.na(department_size)) %>%
+                group_by(department_size) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = department_size)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Department Size",
+                     subtitle = "From 2017 Design Census",
+                     fill = input$metric) +
+                scale_fill_brewer(palette = "Blues")
+        }
+})
+    
+    output$tab1_2017 <- renderPlot({
+        plot <- tab1_2017_react()
+        plot
+    })
+    
+    tab1_2019_react <- reactive({
+        bar_palette <- c('#ff6998', '#ff7499', '#ff7f99', '#ff889a', '#ff929a', '#ff9b9a', '#ffa49b', '#ffac9b', '#ffb49b')
+        
+        if(input$metric == "Age"){census_model_joined %>%
+                filter(year == 2019) %>%
+                group_by(age_group) %>%
+                count() %>%
+                ggplot(aes(x = age_group, y = n)) +
+                geom_bar(stat = "identity", fill = bar_palette) +
+                theme_minimal() +
+                labs(x = "Age",
+                     y = "Number of Designers",
+                     title = "Distribution of Designers by Age",
+                     subtitle = "From 2017 Design Census")
+            
+        }
+        else if(input$metric == "Gender"){
+            gender_colors <- c("#eb6a90", "#6ab5eb", "#d081f0", "#4f32ad", "#8d7feb")
+            census_model_joined %>%
+                filter(year == 2019) %>%
+                group_by(gender) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 1, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = gender)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                scale_fill_manual(values = gender_colors, name = "Gender") +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Gender",
+                     subtitle = "From 2019 Design Census")
+        }
+        else if(input$metric == "Career Duration"){
+            census_model_joined %>%
+                filter(year == 2019) %>%
+                group_by(career_duration) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = career_duration)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Career Duration",
+                     subtitle = "From 2019 Design Census",
+                     fill = "Career Duration") +
+                scale_fill_brewer(palette = "RdPu")
+        }
+        else if(input$metric == "Organization Size"){
+            census_model_joined %>%
+                filter(year == 2019,
+                       !org_size == "",
+                       !is.na(org_size)) %>%
+                group_by(org_size) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = org_size)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Organization Size",
+                     subtitle = "From 2019 Design Census",
+                     fill = input$metric)+
+                scale_fill_brewer(palette = "RdPu")
+        }
+        else if(input$metric == "Department Size"){
+            census_model_joined %>%
+                filter(year == 2019,
+                       !department_size == "",
+                       !is.na(department_size)) %>%
+                group_by(department_size) %>%
+                count() %>%
+                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                       prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
+                ggplot(aes(x = 2, y = n, fill = department_size)) +
+                geom_bar(stat = "identity", color = "white") +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                coord_polar(theta = "y", start = 0) +
+                theme_void() +
+                xlim(0.5, 2.7) +
+                labs(title = "Designers by Department Size",
+                     subtitle = "From 2019 Design Census",
+                     fill = input$metric)+
+                scale_fill_brewer(palette = "RdPu")
+        }
+    })
+    
+    output$tab1_2019 <- renderPlot({
+        plot <- tab1_2019_react()
+        plot
+    })
     
     salary_satisfaction_react_2017 <- reactive({
         if(input$y_var == "Salary"){
@@ -262,6 +461,8 @@ server <- function(input, output) {
             }
         }
     })
+    
+    
     
     salary_satisfaction_react_2019 <- reactive({
         if(input$y_var == "Salary"){
