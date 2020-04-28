@@ -456,6 +456,7 @@ census_model_joined %>%
   scale_fill_manual(values = bar_palette, name = "Age ") +
   theme_classic()
 
+census_model_joined <- read_rds("./design_project/census_model_joined.rds")
 
 ```
  

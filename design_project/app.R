@@ -169,6 +169,7 @@ server <- function(input, output) {
 
     tab1_2017_react <- reactive({
         bar_palette <- c('#6981e6', '#6f8ce6', '#7597e7', '#7aa2e7', '#7eade7', '#82b9e7', '#86c4e7', '#89cfe7', '#8cdbe6')
+        total <- census_model_joined %>% filter(year == 2017) %>% count() %>% pull(n)
         if(input$metric == "Age"){
             census_model_joined %>%
             filter(year == 2017) %>%
@@ -189,7 +190,7 @@ server <- function(input, output) {
                 filter(year == 2017) %>%
                 group_by(gender) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 0.5, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = gender)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -206,7 +207,7 @@ server <- function(input, output) {
                 filter(year == 2017) %>%
                 group_by(career_duration) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = career_duration)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -226,7 +227,7 @@ server <- function(input, output) {
                        !is.na(org_size)) %>%
                 group_by(org_size) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = org_size)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -246,7 +247,7 @@ server <- function(input, output) {
                        !is.na(department_size)) %>%
                 group_by(department_size) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = department_size)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -268,7 +269,7 @@ server <- function(input, output) {
     
     tab1_2019_react <- reactive({
         bar_palette <- c('#ff6998', '#ff7499', '#ff7f99', '#ff889a', '#ff929a', '#ff9b9a', '#ffa49b', '#ffac9b', '#ffb49b')
-        
+        total <- census_model_joined %>% filter(year == 2019) %>% count() %>% pull(n)
         if(input$metric == "Age"){census_model_joined %>%
                 filter(year == 2019) %>%
                 group_by(age_group) %>%
@@ -288,7 +289,7 @@ server <- function(input, output) {
                 filter(year == 2019) %>%
                 group_by(gender) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 1, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = gender)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -305,7 +306,7 @@ server <- function(input, output) {
                 filter(year == 2019) %>%
                 group_by(career_duration) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = career_duration)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -325,7 +326,7 @@ server <- function(input, output) {
                        !is.na(org_size)) %>%
                 group_by(org_size) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = org_size)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -345,7 +346,7 @@ server <- function(input, output) {
                        !is.na(department_size)) %>%
                 group_by(department_size) %>%
                 count() %>%
-                mutate(prop = round(n/nrow(census_2017)*100, digits = 1),
+                mutate(prop = round(n/total*100, digits = 1),
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = department_size)) +
                 geom_bar(stat = "identity", color = "white") +
@@ -354,9 +355,8 @@ server <- function(input, output) {
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Department Size",
-                     subtitle = "From 2019 Design Census",
-                     fill = input$metric)+
-                scale_fill_brewer(palette = "RdPu")
+                     subtitle = "From 2019 Design Census")+
+                scale_fill_brewer(palette = "RdPu", name = input$metric)
         }
     })
     
