@@ -22,17 +22,61 @@ model_satisfaction <- read_rds("./model_satisfaction.rds")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     theme = shinytheme("cosmo"),
-
-    # Application title
-    titlePanel("Deep Dive into Design in America"),
     
     # Adding tabs
-    navbarPage("",
+    navbarPage("Deep Dive into Design in the US",
                
+
+               tabPanel("About",
+                        mainPanel(
+                            h1("An analysis of the US design industry's demographics"),
+                            br(),
+                            h3("About the Topic"),
+                            
+                            p("As an emerging product and UI/UX designer coming from an unconventional design
+        background, I have recently been interested in taking a deeper dive into better
+        understanding what the design field quantitatively looks like. I am particularly
+        interested in learning more about what the demographic of current designers are,
+        how its have changed over the last two years, and how it correlates with the
+        general spread of companies and industries in the US."),
+                            
+                            p("This project aims to hopefully elucidate design career trends for anyone
+        interested in entering the field, already in the field, or curious about design."),
+                            
+                            h3("About the Data"),
+                            
+                            p("The Design Census data was collected by The American Institute of Graphic Arts
+        (AIGA) most recently in 2017 and 2019. The Design Census was a survey that was
+        circulated in the design community and open to public for 5 weeks. The raw csv
+        data files were downloaded from the respective Design Census websites, which can
+        be found", a("here for the 2019 data", href = "https://designcensus.org/"), "and",
+                              a("here for the 2017 data.", href = "http://designcensus2017.aiga.org/")),
+                            
+                            
+                            p("The data set on US companies was from the Open Data 500 Project, which is the
+        first comprehensive study of US companies that use open government data
+        conducted by the GovLab of New York University. The raw csv data files were
+        downloaded from the Open Data 500 website, which can be found", 
+                              a("here.", href ="https://www.opendata500.com/us/")),
+                            
+                            p("In order to make sense of the zip codes from the aforementioned data sets, a US
+        zip codes data set from SimpleMaps was used to configure zip codes to states and
+        cities. The zip codes dataset can be found", a("here.", href = "https://simplemaps.com/data/us-zips")),
+                            
+                            h3("About me"),
+                            
+                            p("I am a senior concentrating in Neuroscience with a secondary in Mind, Brain, and Behavior.
+                 When I'm not studying science, I like to design things!"),
+                            p("Check out my design", a("portfolio", href = "http://www.stephcheng.com"), "and the code for this project can be found on my",
+                              a("Github!", href = "https://github.com/swcg1/gov1005-final_project"))
+                        )),
     # Sidebar with a slider input for number of bins 
     tabPanel("Who Are Our Designers?", 
              sidebarLayout(
                  sidebarPanel(
+                     p("Get a big-picture overview of who our designers are by a few main metrics.
+                       Select a variable below to see a visual representation of the demographics of
+                       the variable of interest."),
                      selectInput("metric",
                                  label = "Choose a variable to investigate",
                                  choices = list("Age",
@@ -55,6 +99,9 @@ ui <- fluidPage(
     tabPanel("By Salary and Job Satisfaction",
              sidebarLayout(
                  sidebarPanel(
+                     p("Take a look at how our main variables of interest affect the salary
+                       or job satisfaction of our designers. Select a metric and variable to see
+                       a visual representation of the relationship."),
                      selectInput("y_var",
                                  label = "Choose a metric to investigate",
                                  choices = list("Salary", "Job Satisfaction"),
@@ -79,6 +126,10 @@ ui <- fluidPage(
     tabPanel("Predictor",
              sidebarLayout(
                  sidebarPanel(
+                     p("Predict a designer's salary and job satisfaction by completing the fields below.
+                       The predictor is generated by running a linear regression model on the Design Census
+                       with the given variables of interest. For more information, check out the Github for
+                       the source code."),
                      numericInput("age",
                                   label = "How old are you?",
                                   value = 21,
@@ -110,7 +161,7 @@ ui <- fluidPage(
                                           plotOutput("satisfaction_plot")))
 
                  )
-             )),
+             ))
    # tabPanel("By Location",
             # sidebarLayout(
             #     sidebarPanel(),
@@ -119,47 +170,6 @@ ui <- fluidPage(
            #      )
             # )
             # ),
-    tabPanel("About",
-             mainPanel(
-                 h2("About the Topic"),
-                 
-                 p("As an emerging product and UI/UX designer coming from an unconventional design
-        background, I have recently been interested in taking a deeper dive into better
-        understanding what the design field quantitatively looks like. I am particularly
-        interested in learning more about what the demographic of current designers are,
-        how its have changed over the last two years, and how it correlates with the
-        general spread of companies and industries in the US."),
-                 
-                 p("This project aims to hopefully elucidate design career trends for anyone
-        interested in entering the field, already in the field, or curious about design."),
-                 
-                 h2("About the Data"),
-                 
-                 p("The Design Census data was collected by The American Institute of Graphic Arts
-        (AIGA) most recently in 2017 and 2019. The Design Census was a survey that was
-        circulated in the design community and open to public for 5 weeks. The raw csv
-        data files were downloaded from the respective Design Census websites, which can
-        be found", a("here for the 2019 data", href = "https://designcensus.org/"), "and",
-                 a("here for the 2017 data.", href = "http://designcensus2017.aiga.org/")),
-                 
-                 
-                 p("The data set on US companies was from the Open Data 500 Project, which is the
-        first comprehensive study of US companies that use open government data
-        conducted by the GovLab of New York University. The raw csv data files were
-        downloaded from the Open Data 500 website, which can be found", 
-                   a("here.", href ="https://www.opendata500.com/us/")),
-                 
-                 p("In order to make sense of the zip codes from the aforementioned data sets, a US
-        zip codes data set from SimpleMaps was used to configure zip codes to states and
-        cities. The zip codes dataset can be found", a("here.", href = "https://simplemaps.com/data/us-zips")),
-                 
-                 h2("About me"),
-                 
-                 p("I am a senior concentrating in Neuroscience with a secondary in Mind, Brain, and Behavior.
-                 When I'm not studying science, I like to design things!"),
-                 p("Check out my design", a("portfolio", href = "http://www.stephcheng.com"), "and the code for this project can be found on my",
-                   a("Github!", href = "https://github.com/swcg1/gov1005-final_project"))
-             ))
     )
 )
 
@@ -181,7 +191,12 @@ server <- function(input, output) {
             labs(x = "Age",
                  y = "Number of Designers",
                  title = "Distribution of Designers by Age",
-                 subtitle = "From 2017 Design Census")
+                 subtitle = "From 2017 Design Census")+
+                theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 12),
+                      plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16),
+                      axis.title = element_text(size = 14),
+                      axis.text.y = element_text(size = 12)) 
 
         }
         else if(input$metric == "Gender"){
@@ -194,13 +209,15 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 0.5, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = gender)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 scale_fill_manual(values = gender_colors, name = "Gender") +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Gender",
-                     subtitle = "From 2017 Design Census")
+                     subtitle = "From 2017 Design Census") +
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Career Duration"){
             plot <- census_model_joined %>%
@@ -211,14 +228,16 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = career_duration)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Career Duration",
                      subtitle = "From 2017 Design Census",
                      fill = "Career Duration") +
-                scale_fill_brewer(palette = "Blues")
+                scale_fill_brewer(palette = "Blues")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Organization Size"){
             plot <- census_model_joined %>%
@@ -231,14 +250,16 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = org_size)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Organization Size",
                      subtitle = "From 2017 Design Census",
                      fill = input$metric) +
-                scale_fill_brewer(palette = "Blues")
+                scale_fill_brewer(palette = "Blues")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Department Size"){
             plot <- census_model_joined %>%
@@ -251,14 +272,16 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = department_size)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Department Size",
                      subtitle = "From 2017 Design Census",
                      fill = input$metric) +
-                scale_fill_brewer(palette = "Blues")
+                scale_fill_brewer(palette = "Blues")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
 })
     
@@ -280,7 +303,12 @@ server <- function(input, output) {
                 labs(x = "Age",
                      y = "Number of Designers",
                      title = "Distribution of Designers by Age",
-                     subtitle = "From 2017 Design Census")
+                     subtitle = "From 2017 Design Census")+
+                theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 12),
+                      plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16),
+                      axis.title = element_text(size = 14),
+                      axis.text.y = element_text(size = 12)) 
             
         }
         else if(input$metric == "Gender"){
@@ -293,13 +321,15 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 1, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = gender)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 scale_fill_manual(values = gender_colors, name = "Gender") +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Gender",
-                     subtitle = "From 2019 Design Census")
+                     subtitle = "From 2019 Design Census")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Career Duration"){
             census_model_joined %>%
@@ -310,14 +340,16 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = career_duration)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Career Duration",
                      subtitle = "From 2019 Design Census",
                      fill = "Career Duration") +
-                scale_fill_brewer(palette = "RdPu")
+                scale_fill_brewer(palette = "RdPu")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Organization Size"){
             census_model_joined %>%
@@ -330,14 +362,16 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = org_size)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Organization Size",
                      subtitle = "From 2019 Design Census",
                      fill = input$metric)+
-                scale_fill_brewer(palette = "RdPu")
+                scale_fill_brewer(palette = "RdPu")+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
         else if(input$metric == "Department Size"){
             census_model_joined %>%
@@ -350,13 +384,15 @@ server <- function(input, output) {
                        prop2 = map(prop, ~ifelse(prop < 2, "", paste(as.character(.), "%", sep = "")))) %>%
                 ggplot(aes(x = 2, y = n, fill = department_size)) +
                 geom_bar(stat = "identity", color = "white") +
-                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 3) +
+                geom_text(aes(label = prop2, x = 2.7), position = position_stack(vjust = 0.5), size = 5) +
                 coord_polar(theta = "y", start = 0) +
                 theme_void() +
                 xlim(0.5, 2.7) +
                 labs(title = "Designers by Department Size",
                      subtitle = "From 2019 Design Census")+
-                scale_fill_brewer(palette = "RdPu", name = input$metric)
+                scale_fill_brewer(palette = "RdPu", name = input$metric)+
+                theme(plot.title = element_text(size = 20),
+                      plot.subtitle = element_text(size = 16))
         }
     })
     
@@ -518,7 +554,7 @@ server <- function(input, output) {
                            !is.na(satisfaction_level)) %>%
                     summarize(mean_satisfaction = mean(satisfaction_level)) %>%
                     ggplot(aes(age_group, mean_satisfaction)) +
-                    geom_col(aes(fill = age_group))
+                    geom_col(aes(fill = age_group)) 
             }
             else if(input$x_var == "Gender"){
                 summarized <- census_model_joined %>%
@@ -570,7 +606,12 @@ server <- function(input, output) {
             labs(x = input$x_var,
                  y = paste("Mean", input$y_var),
                  title = paste(input$y_var, "by", input$x_var),
-                 subtitle = "Of Designers in the US in 2017")
+                 subtitle = "Of Designers in the US in 2017") +
+            theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 12),
+                  plot.title = element_text(size = 20),
+                  plot.subtitle = element_text(size = 16),
+                  axis.title = element_text(size = 14),
+                  axis.text.y = element_text(size = 12)) 
         
         salary_age
     })
@@ -584,7 +625,12 @@ server <- function(input, output) {
             labs(x = input$x_var,
                  y = paste("Mean", input$y_var),
                  title = paste(input$y_var, "by", input$x_var),
-                 subtitle = "Of Designers in the US in 2019")
+                 subtitle = "Of Designers in the US in 2019") +
+            theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 12),
+                  plot.title = element_text(size = 20),
+                  plot.subtitle = element_text(size = 16),
+                  axis.title = element_text(size = 14),
+                  axis.text.y = element_text(size = 12)) 
         
         salary_age
     })
